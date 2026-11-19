@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galaxy Core</title>
+<meta name="theme-color" content="#050816">
+<meta name="description" content="Galaxy Core - AI assistant with conversations, memory, voice and image understanding">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#111a45 0%,#050816 45%,#02030a 100%);color:#fff;min-height:100vh}
+button,textarea,input,select{font-family:inherit}
+button{cursor:pointer}
+header{position:sticky;top:0;z-index:1000;background:rgba(4,7,22,.94);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.1)}
+.nav{max-width:1250px;margin:auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.logo{font-size:24px;font-weight:800;letter-spacing:1px}.logo span{opacity:.7}
+.nav-links{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.nav-links button,.control-row button,.file-label{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.13);border-radius:10px;padding:9px 12px}
+.nav-links button:hover,.control-row button:hover,.file-label:hover{background:rgba(255,255,255,.1)}
+.container{width:min(1200px,calc(100% - 30px));margin:auto}
+.hero{padding:70px 0 40px;text-align:center}.hero h1{font-size:clamp(40px,8vw,76px);margin:0;letter-spacing:-2px}
+.hero p{max-width:750px;margin:20px auto;color:#b9c3e6;font-size:18px;line-height:1.7}
+.primary{background:linear-gradient(135deg,#6c63ff,#00d4ff);color:#fff;border:none;border-radius:13px;padding:13px 20px;font-weight:700}
+.secondary{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:13px;padding:13px 20px}
+.section{padding:45px 0}.section h2{margin-top:0;font-size:32px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.card{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:22px;box-shadow:0 15px 50px rgba(0,0,0,.2)}
+.card h3{margin-top:0}.card p{color:#b7c0df;line-height:1.6}
+.ad-slot{min-height:90px;border:1px dashed rgba(255,255,255,.18);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#7f89ad;margin:25px 0}
+.hidden{display:none!important}
+footer{margin-top:60px;padding:30px 0;border-top:1px solid rgba(255,255,255,.1);color:#8e98bd;text-align:center}
+footer button{background:none;border:none;color:#9fa9d8;margin:5px}
+.chat-layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px}
+.conversation-panel{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:12px;min-height:620px}
+.conversation-head{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.conversation-list{display:grid;gap:7px;max-height:560px;overflow:auto}
+.conversation-item{display:flex;gap:5px;align-items:center}
+.conversation-open{flex:1;text-align:left;background:rgba(255,255,255,.05);color:#fff;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px}
+.conversation-open.active{background:rgba(108,99,255,.28);border-color:rgba(108,99,255,.65)}
+.conversation-delete{width:35px;height:35px;padding:0;border-radius:8px;background:rgba(255,70,70,.12);color:#fff;border:1px solid rgba(255,255,255,.08)}
+.conversation-title{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conversation-date{display:block;color:#8993b9;font-size:11px;margin-top:4px}
+.chat-box{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.1);border-radius:20px;overflow:hidden}
+.chat-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 15px;border-bottom:1px solid rgba(255,255,255,.1)}
+.mobile-more{display:none;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:6px 12px;font-size:22px;line-height:1}.mobile-conversation-menu{display:none}
+.current-title{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.messages{min-height:400px;max-height:650px;overflow-y:auto;padding:20px}
+.empty-chat{text-align:center;color:#8993b9;padding:80px 20px}
+.message{max-width:85%;margin:12px 0;padding:13px 16px;border-radius:15px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word}
+.user-message{margin-left:auto;background:rgba(92,79,255,.35)}
+.ai-message{margin-right:auto;background:rgba(255,255,255,.07)}
+.message-tools{display:flex;gap:6px;margin-top:7px}
+.message-tools button{font-size:12px;padding:5px 8px;border-radius:7px;background:rgba(255,255,255,.05);color:#b9c3e6;border:1px solid rgba(255,255,255,.08)}
+.chat-controls{
+position:sticky;
+bottom:12px;
+z-index:50;
+margin:12px 14px 14px;
+padding:12px;
+border:1px solid rgba(255,255,255,.14);
+border-radius:18px;
+background:rgba(7,10,25,.82);
+backdrop-filter:blur(18px);
+-webkit-backdrop-filter:blur(18px);
+box-shadow:0 12px 38px rgba(0,0,0,.38),0 0 0 1px rgba(124,58,237,.08);
+}
+textarea{width:100%;min-height:58px;max-height:180px;resize:vertical;background:rgba(0,0,0,.28);color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px;outline:none;box-sizing:border-box}
+textarea:focus,input:focus,select:focus{border-color:#6c63ff;box-shadow:0 0 0 2px rgba(108,99,255,.12)}
+.control-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:9px}
+.control-row button,.file-label{height:40px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;border-radius:12px;cursor:pointer;box-sizing:border-box}
+.control-row button:not(.primary),.file-label{background:rgba(255,255,255,.06);color:#e9edff;border:1px solid rgba(255,255,255,.12)}
+.control-row button:not(.primary):hover,.file-label:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.22)}
+.control-row .primary{min-width:88px;box-shadow:0 5px 18px rgba(108,99,255,.25)}
+.file-label{display:inline-flex}
+input[type=file]{display:none}
+.preview{margin-top:12px;display:none}
+.image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:12px}
+.image-card{position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:6px}
+.image-card img{width:100%;height:100px;object-fit:cover;border-radius:8px;display:block}
+.image-card button{width:100%;margin-top:5px;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,70,70,.15);color:#fff}
+.image-count,.file-info,.status{margin-top:10px;color:#b9c3e6}.status{min-height:20px}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.tool-grid button{padding:18px;border-radius:14px;color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.form-grid input,.form-grid select{width:100%;background:rgba(0,0,0,.25);color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:11px;padding:12px}
+.memory-list{display:grid;gap:10px}.memory-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:13px;border-radius:12px}.small{color:#8993b9;font-size:13px}
+.modal{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-content{width:min(700px,100%);max-height:85vh;overflow-y:auto;background:#080c20;border:1px solid rgba(255,255,255,.13);border-radius:20px;padding:25px}
+.close-btn{float:right;background:transparent;color:#fff;border:none;font-size:24px}
+
+/* V3.2.1 — floating composer / fixed action controls */
+.chat-box{position:relative;overflow:visible}
+.messages{padding-bottom:18px}
+.chat-controls::before{content:"";position:absolute;inset:-1px;border-radius:18px;pointer-events:none;border:1px solid rgba(124,58,237,.08)}
+@media(max-width:700px){
+  .chat-controls{position:sticky;bottom:8px;margin:8px 8px 10px;padding:10px;border-radius:16px}
+  .chat-controls textarea{min-height:52px;font-size:15px}
+  .control-row{gap:6px}
+  .control-row button,.file-label{height:38px;min-width:38px;padding:0 10px;border-radius:11px}
+  .control-row .primary{min-width:70px}
+}
+@media(max-width:430px){
+  .control-row button,.file-label{font-size:0;width:40px;padding:0}
+  .control-row button::first-letter,.file-label::first-letter{font-size:18px}
+  .control-row .primary{font-size:0;width:44px}
+  .control-row .primary::first-letter{font-size:18px}
+}
+@media(max-width:850px){.chat-layout{grid-template-columns:1fr}.conversation-panel{display:none}.conversation-list{max-height:220px}.nav{align-items:flex-start;flex-direction:column}.mobile-more{display:block}.chat-box{position:relative}.mobile-conversation-menu{position:absolute;right:10px;top:58px;z-index:1000;width:min(340px,calc(100vw - 28px));background:#080c20;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px;box-shadow:0 18px 50px rgba(0,0,0,.45)}.mobile-conversation-menu.open{display:block}.mobile-conversation-menu .conversation-list{display:grid;max-height:55vh;overflow:auto}}
+@media(max-width:700px){.nav-links{justify-content:flex-start}.message{max-width:94%}.hero{padding-top:40px}}
+
+:root {
+    --gc-accent: #7c3aed;
+    --gc-font-scale: 1;
+    --gc-bg: #050816;
+}
+body { font-size: calc(16px * var(--gc-font-scale)); }
+.gc-settings-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:15px; }
+.gc-setting { padding:15px; border:1px solid rgba(255,255,255,.12); border-radius:14px; }
+.gc-setting label { display:block; margin-bottom:8px; font-weight:600; }
+.gc-setting input, .gc-setting select { width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:rgba(0,0,0,.18); color:inherit; box-sizing:border-box; }
+.gc-accent-button { border-color:var(--gc-accent) !important; }
+.gc-accent-text { color:var(--gc-accent) !important; }
+
+/* ============================================================
+   V3.2.1 PERSONALIZATION FIXES
+============================================================ */
+:root{--gc-accent:#7c3aed;--gc-accent-soft:rgba(124,58,237,.18);--gc-font-scale:1;--gc-bg:#050816}
+body{font-size:calc(16px * var(--gc-font-scale));background:var(--gc-bg)!important}
+.gc-settings-card{overflow:hidden}
+.gc-settings-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12)}
+.gc-save-button{background:var(--gc-accent)!important;box-shadow:0 8px 24px var(--gc-accent-soft)!important}
+.gc-save-status{font-weight:700;min-height:20px;color:var(--gc-accent)}
+.gc-color-row{display:flex;gap:10px;align-items:center}
+.gc-color-row input[type="color"]{width:54px;height:42px;padding:3px;cursor:pointer;border-radius:10px}
+.gc-color-preview{height:42px;flex:1;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:var(--gc-bg)}
+.gc-personalized-greeting{line-height:1.7;padding:24px!important;border:1px solid var(--gc-accent-soft);border-radius:18px;background:rgba(255,255,255,.035)}
+.gc-personalized-greeting strong{color:var(--gc-accent)}
+.gc-personalized-greeting span{opacity:.9}
+.primary{background:var(--gc-accent)!important;box-shadow:0 6px 20px var(--gc-accent-soft)}
+.nav-links button:hover,.control-row button:hover,.file-label:hover{border-color:var(--gc-accent);box-shadow:0 0 0 1px var(--gc-accent-soft)}
+.gc-setting:focus-within{border-color:var(--gc-accent);box-shadow:0 0 0 2px var(--gc-accent-soft)}
+textarea:focus,input:focus,select:focus{border-color:var(--gc-accent)!important;box-shadow:0 0 0 2px var(--gc-accent-soft)!important}
+.logo span,.current-title{color:var(--gc-accent)!important}
+.status-dot{background:var(--gc-accent)!important;box-shadow:0 0 12px var(--gc-accent)!important}
+.chat-controls{border-color:var(--gc-accent-soft)}
+body[data-gc-theme="light"]{background:#eef4fb!important;color:#14243a!important}
+body[data-gc-theme="light"] header{background:rgba(255,255,255,.96);border-bottom-color:#cbd8e8}
+body[data-gc-theme="light"] .nav-links button{color:#20344d;background:#fff;border-color:#c9d8e8}
+body[data-gc-theme="light"] .hero p,body[data-gc-theme="light"] .card p,body[data-gc-theme="light"] .small{color:#526b86}
+body[data-gc-theme="light"] .card{background:#fff;border-color:#cbd8e8;box-shadow:0 10px 30px rgba(30,60,90,.08)}
+body[data-gc-theme="light"] .chat-box{background:#f4f8fd;border-color:#cbd8e8}
+body[data-gc-theme="light"] .chat-toolbar{background:#fff;border-bottom-color:#d4dfeb}
+body[data-gc-theme="light"] .messages{background:#f4f8fd}
+body[data-gc-theme="light"] .chat-controls{background:rgba(255,255,255,.94);border-color:#cbd8e8}
+body[data-gc-theme="light"] textarea,body[data-gc-theme="light"] input,body[data-gc-theme="light"] select{background:#fff;color:#14243a;border-color:#b9cbe0}
+body[data-gc-theme="light"] .control-row button,body[data-gc-theme="light"] .file-label{color:#20344d;background:#fff;border-color:#c4d4e5}
+body[data-gc-theme="light"] .gc-setting{background:#f5f9fd;border-color:#cbd8e8}
+body[data-gc-theme="light"] .message.ai-message{background:#fff;color:#17263a;border-color:#d1deeb}
+body[data-gc-theme="light"] .message.user-message{background:var(--gc-accent);color:#fff}
+body[data-gc-theme="light"] .empty-chat{color:#526b86}
+body[data-gc-theme="midnight"]{background:#02030b!important}
+body[data-gc-theme="midnight"] header,body[data-gc-theme="midnight"] .chat-controls{background:rgba(4,6,18,.94)}
+body[data-gc-theme="system"]{}
+
+.gc-control-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}
+.gc-control-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px}
+.gc-control-stat .label{display:block;color:#8993b9;font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.gc-control-stat .value{font-size:22px;font-weight:800}
+.gc-device-status{margin-top:15px;padding:14px;border-radius:13px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);color:#d9ffe8}
+.gc-control-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.gc-control-actions button{min-width:130px}
+.gc-command-hint{color:#aeb8d8;line-height:1.7;margin-top:12px}
+body[data-gc-theme="light"] .gc-control-stat{background:#f5f9fd;border-color:#cbd8e8}
+body[data-gc-theme="light"] .gc-device-status{background:#eefaf2;color:#185c34;border-color:#bfe4ca}
+@media(max-width:700px){.gc-settings-actions{flex-direction:column;align-items:stretch}.gc-settings-actions button{width:100%}.gc-save-status{text-align:center}}
+
+</style>
+</head>
+
+<body>
+<header>
+<div class="nav">
+<div class="logo">🌌 Galaxy <span>Core</span></div>
+<div class="nav-links">
+<button onclick="showSection('home')">Home</button>
+<button onclick="showSection('chat')">AI Chat</button>
+<button onclick="showSection('study')">Study & GK</button>
+<button onclick="showSection('tools')">AI Tools</button>
+<button onclick="showSection('control')">🤖 Control</button><button onclick="showSection('chat')">📱 Phone</button>
+<button onclick="showSection('memory')">Memory</button>
+<button onclick="showSection('guides')">Guides</button>
+<button onclick="showSection('help')">Help</button>
+            <button onclick="showSection('settings')">⚙️ Settings</button>
+</div>
+</div>
+</header>
+
+<main>
+<div id="home" class="container">
+<section class="hero">
+<h1>Galaxy Core</h1>
+<p>Your intelligent AI companion with conversations, memory, voice, image understanding, study tools and AI utilities.</p>
+<div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
+<button class="primary" onclick="startNewChat();showSection('chat')">🚀 New Chat</button>
+<button class="secondary" onclick="showSection('study')">📚 Study & GK</button>
+</div>
+</section>
+
+<div class="ad-slot">Advertisement</div>
+
+<section class="section">
+<h2>Galaxy Core V3.3</h2>
+<div class="grid">
+<div class="card"><h3>🤖 AI Assistant</h3><p>Ask questions, solve problems and continue saved conversations.</p><button class="secondary" onclick="showSection('chat')">Open</button></div>
+<div class="card"><h3>🧠 Cloud Memory</h3><p>Galaxy Core can synchronize useful memory with the backend.</p><button class="secondary" onclick="showSection('memory')">Memory</button></div>
+<div class="card"><h3>💬 Conversations</h3><p>Save separate conversations and reopen any one later.</p><button class="secondary" onclick="showSection('chat')">Open Chats</button></div>
+<div class="card"><h3>🖼️ Vision</h3><p>Upload supported images and ask Galaxy Core to understand them.</p></div>
+<div class="card"><h3>📚 Study</h3><p>Generate explanations, quizzes and question papers.</p></div>
+<div class="card"><h3>🎤 Voice</h3><p>Use your microphone and optionally listen to AI responses.</p></div>
+<div class="card"><h3>🤖 Device Control</h3><p>Galaxy Core V3.3 can interpret explicit toy-car commands and control a safe virtual device.</p><button class="secondary" onclick="showSection('control')">Open Control</button></div>
+</div>
+</section>
+</div>
+
+<section id="chat" class="container section hidden">
+<h2>🤖 AI Chat</h2>
+
+<div class="chat-layout">
+<aside class="conversation-panel">
+<div class="conversation-head">
+<strong>💬 Conversations</strong>
+<button class="primary" onclick="startNewChat()">＋ New</button>
+</div>
+<div class="small" style="margin-bottom:10px">Saved conversations remain here after refresh or reopening the app.</div>
+<div id="conversationList" class="conversation-list"></div>
+</aside>
+
+<div class="chat-box">
+<div class="chat-toolbar">
+<div id="currentConversationTitle" class="current-title">New Chat</div>
+<div style="display:flex;gap:6px">
+<button class="secondary" onclick="renameCurrentConversation()">✏️ Rename</button>
+</div>
+<button class="mobile-more" onclick="toggleMobileConversations()" aria-label="More options">⋯</button>
+</div>
+
+<div id="mobileConversationMenu" class="mobile-conversation-menu">
+<div class="conversation-head"><strong>💬 Conversations</strong><button class="primary" onclick="startNewChat();closeMobileConversations()">＋ New</button></div>
+<div id="mobileConversationList" class="conversation-list"></div>
+</div>
+
+<div id="messages" class="messages">
+<div class="empty-chat">🌌 Start a new conversation with Galaxy Core.</div>
+</div>
+
+<div class="chat-controls">
+<textarea id="messageInput" placeholder="Ask Galaxy Core anything..." onkeydown="handleEnter(event)"></textarea>
+
+<div class="control-row">
+<button class="primary" onclick="sendMessage()">🚀 Send</button>
+
+<label class="file-label">🖼️ Image
+<input id="imageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onchange="handleImages(event)">
+</label>
+
+<label class="file-label">📄 Document
+<input id="documentInput" type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onchange="handleDocument(event)">
+</label>
+
+<button onclick="startVoice()">🎤 Voice</button>
+<button onclick="toggleTTS()" id="ttsButton">🔇 TTS OFF</button>
+<button onclick="clearCurrentChat()">🗑️ Clear</button>
+</div>
+
+<div id="imagePreview" class="preview">
+<div id="imageGrid" class="image-grid"></div>
+<div id="imageCount" class="image-count"></div>
+<button onclick="removeAllImages()">Remove All Images</button>
+</div>
+
+<div id="fileInfo" class="file-info"></div>
+<div id="chatStatus" class="status"></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="study" class="container section hidden">
+<h2>📚 Study & GK</h2>
+<div class="card">
+<div class="form-grid">
+<input id="studyTopic" placeholder="Topic e.g. Solar System">
+<input id="studyClass" placeholder="Class e.g. VI">
+<select id="studyQuestions"><option value="5">5 Questions</option><option value="10" selected>10 Questions</option><option value="20">20 Questions</option></select>
+</div>
+<div class="control-row">
+<button class="primary" onclick="generateExplanation()">📖 Explain Topic</button>
+<button class="primary" onclick="generateQuiz()">📝 Generate Quiz</button>
+<button class="primary" onclick="generateQuestionPaper()">📄 Question Paper</button>
+</div>
+<div id="studyResult" class="card" style="margin-top:15px">Results will appear here.</div>
+</div>
+</section>
+
+<section id="tools" class="container section hidden">
+<h2>🛠️ AI Tools</h2>
+<div class="card">
+<textarea id="toolInput" placeholder="Enter text for the AI tool..."></textarea>
+<div class="tool-grid" style="margin-top:15px">
+<button onclick="runTool('summarize')">📌 Summarize</button>
+<button onclick="runTool('rewrite')">✍️ Rewrite</button>
+<button onclick="runTool('simplify')">💡 Simplify</button>
+<button onclick="runTool('translate')">🌐 Translate</button>
+<button onclick="runTool('ideas')">💭 Generate Ideas</button>
+<button onclick="runTool('email')">✉️ Write Email</button>
+<button onclick="runTool('code')">💻 Explain Code</button>
+<button onclick="runTool('math')">🧮 Solve Problem</button>
+</div>
+<div id="toolResult" class="card" style="margin-top:15px">Tool result will appear here.</div>
+</div>
+</section>
+
+<section id="control" class="container section hidden">
+<h2>🤖 Galaxy Core Control Engine</h2>
+<div class="card">
+<p><strong>V3.3.0 Control Prototype</strong> — Galaxy Core can now distinguish explicit device commands from normal chat and control a software-only virtual toy car.</p>
+<p class="gc-command-hint">Try voice or text commands such as <strong>“move the car forward”</strong>, <strong>“turn left”</strong>, <strong>“go forward slowly for 3 seconds”</strong>, or the emergency command <strong>“STOP”</strong>.</p>
+<div class="gc-control-actions">
+<button class="primary" onclick="sendControlCommand('move the car forward')">⬆️ Forward</button>
+<button class="secondary" onclick="sendControlCommand('turn left')">↩️ Left</button>
+<button class="secondary" onclick="sendControlCommand('turn right')">↪️ Right</button>
+<button class="secondary" onclick="sendControlCommand('reverse the car')">⬇️ Reverse</button>
+<button class="secondary" onclick="sendControlCommand('stop the car')">🛑 STOP</button>
+<button class="secondary" onclick="resetVirtualCarUI()">↩️ Reset</button>
+</div>
+<div class="gc-control-grid">
+<div class="gc-control-stat"><span class="label">Device</span><span id="gcCarName" class="value">Galaxy Virtual Car</span></div>
+<div class="gc-control-stat"><span class="label">Direction</span><span id="gcCarDirection" class="value">North</span></div>
+<div class="gc-control-stat"><span class="label">Speed</span><span id="gcCarSpeed" class="value">0%</span></div>
+<div class="gc-control-stat"><span class="label">Position</span><span id="gcCarPosition" class="value">0.00, 0.00</span></div>
+</div>
+<div id="gcDeviceStatus" class="gc-device-status">🟢 Virtual device online — waiting for a command.</div>
+</div>
+</section>
+
+<section id="memory" class="container section hidden">
+<h2>🧠 Galaxy Core Memory</h2>
+<div class="card">
+<p>Galaxy Core uses an anonymous profile ID so your browser can identify your cloud-memory profile.</p>
+<p class="small">Profile ID: <span id="profileIdDisplay"></span></p>
+<div class="control-row">
+<button class="primary" onclick="syncMemory()">🔄 Sync Current Chat</button>
+<button class="secondary" onclick="refreshCloudMemory()">☁️ Load Cloud Memory</button>
+<button class="secondary" onclick="clearCloudMemory()">🗑️ Clear Cloud Memory</button>
+</div>
+<div id="memoryStatus" class="status"></div>
+</div>
+<div class="card" style="margin-top:15px">
+<h3>Saved Memory</h3>
+<div id="memoryList" class="memory-list">No cloud memory loaded.</div>
+</div>
+</section>
+
+<section id="settings" class="container section hidden">
+<h2>⚙️ Galaxy Core Personalization</h2>
+<div class="card gc-settings-card">
+<p>Customize Galaxy Core on this device. Changes are applied when you press <strong>💾 Save Personalization</strong> and remain saved in this browser.</p>
+<div class="gc-settings-grid">
+<div class="gc-setting"><label for="gcTheme">🌗 Theme</label><select id="gcTheme"><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></div>
+<div class="gc-setting"><label for="gcAccent">🎨 Accent Color</label><select id="gcAccent"><option value="#7c3aed">Purple</option><option value="#06b6d4">Cyan</option><option value="#22c55e">Green</option><option value="#f59e0b">Amber</option><option value="#ef4444">Red</option><option value="#ec4899">Pink</option></select></div>
+<div class="gc-setting"><label for="gcBackground">🖌️ Background Color</label><div class="gc-color-row"><input id="gcBackground" type="color" value="#050816" aria-label="Choose background color"><div id="gcBackgroundPreview" class="gc-color-preview" title="Selected background"></div></div></div>
+<div class="gc-setting"><label for="gcFontSize">🔠 Font Size</label><select id="gcFontSize"><option value="0.9">Small</option><option value="1">Medium</option><option value="1.15">Large</option></select></div>
+<div class="gc-setting"><label for="gcAiName">🤖 AI Name</label><input id="gcAiName" maxlength="40" placeholder="Galaxy Core"></div>
+<div class="gc-setting"><label for="gcGreeting">👋 Greeting</label><input id="gcGreeting" maxlength="160" placeholder="Hello! How can I help you?"></div>
+<div class="gc-setting"><label for="gcShowGreeting">💬 Show Greeting</label><select id="gcShowGreeting"><option value="true">Show</option><option value="false">Hide</option></select></div>
+<div class="gc-setting"><label for="gcResponseStyle">📝 Response Style</label><select id="gcResponseStyle"><option value="balanced">Balanced</option><option value="concise">Concise</option><option value="detailed">Detailed</option><option value="friendly">Friendly</option><option value="professional">Professional</option></select></div>
+<div class="gc-setting"><label for="gcVoiceEnabled">🔊 Voice Preference</label><select id="gcVoiceEnabled"><option value="manual">Manual</option><option value="on">Voice Ready</option><option value="off">Voice Off</option></select></div>
+</div>
+<div class="gc-settings-actions">
+<button class="primary gc-save-button" onclick="savePersonalization()">💾 Save Personalization</button>
+<button class="secondary" onclick="resetPersonalization()">↩️ Reset</button>
+<span id="gcPersonalizationStatus" class="gc-save-status" aria-live="polite"></span>
+</div>
+</div>
+</section>
+
+<section id="guides" class="container section hidden">
+<h2>📖 Guides</h2>
+<div class="grid">
+<div class="card"><h3>Generative AI</h3><p>Generative AI creates text, images, code and other content from user instructions.</p></div>
+<div class="card"><h3>AI Memory</h3><p>Memory allows an AI application to preserve useful information between conversations.</p></div>
+<div class="card"><h3>Galaxy Core Architecture</h3><p>The Cloudflare frontend communicates with the FastAPI backend hosted on Render.</p></div>
+<div class="card"><h3>API Key Security</h3><p>API keys should remain on the backend and must never be exposed inside frontend JavaScript.</p></div>
+<div class="card"><h3>Voice AI</h3><p>Browser speech recognition can convert spoken words into text before sending them to an AI backend.</p></div>
+<div class="card"><h3>Multimodal AI</h3><p>Multimodal systems can process supported images and documents in addition to text.</p></div>
+</div>
+</section>
+
+<section id="help" class="container section hidden">
+<h2>❓ Help & FAQ</h2>
+<div class="grid">
+<div class="card"><h3>How do I chat?</h3><p>Open AI Chat, type your question and press Send.</p></div>
+<div class="card"><h3>How do conversations work?</h3><p>Each saved conversation has its own message history. Refreshing the app opens a clean New Chat, while saved conversations remain available in the list.</p></div>
+<div class="card"><h3>How does memory work?</h3><p>Galaxy Core associates your browser with an anonymous profile ID and can synchronize memory with the backend.</p></div>
+<div class="card"><h3>Can I use images?</h3><p>Yes. Multiple supported images can be uploaded together and analyzed.</p></div>
+<div class="card"><h3>Can I use voice?</h3><p>Yes, if your browser supports speech recognition.</p></div>
+<div class="card"><h3>Why might a response fail?</h3><p>Cloud services and AI model providers can occasionally experience temporary errors or delays.</p></div>
+</div>
+</section>
+</main>
+
+<footer>
+<p>🌌 Galaxy Core — AI for everyone</p>
+<button onclick="openModal('privacyModal')">Privacy</button>
+<button onclick="openModal('termsModal')">Terms</button>
+<button onclick="openModal('contactModal')">Contact</button>
+</footer>
+
+<div id="privacyModal" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('privacyModal')">×</button><h2>Privacy</h2><p>Galaxy Core is designed to keep the Gemini API key on the backend rather than exposing it to browser users.</p><p>Anonymous profile information may be used to associate cloud-memory data with the same browser profile.</p><p>Do not enter highly sensitive personal information unless the service's final privacy policy explains how it is handled.</p></div></div>
+<div id="termsModal" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('termsModal')">×</button><h2>Terms</h2><p>Galaxy Core is an AI software service. AI-generated answers may contain errors and should be independently checked when accuracy is important.</p><p>Users are responsible for the information they submit and how they use generated content.</p></div></div>
+<div id="contactModal" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal('contactModal')">×</button><h2>Contact</h2><p>Galaxy Core support contact information can be added here when the public support system is finalized.</p></div></div>
+
+
+<script>
+"use strict";
+
+/* ============================================================
+   CONFIG
+   ============================================================ */
+
+const API_BASE = "https://galaxy-core-2lbu.onrender.com";
+const API_URL = API_BASE + "/chat";
+const MEMORY_URL = API_BASE + "/memory";
+
+const MAX_IMAGES = 10;
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
+const MAX_TOTAL_IMAGE_SIZE = 100 * 1024 * 1024;
+const MAX_HISTORY = 30;
+const CONVERSATIONS_KEY = "galaxyCoreConversationsV2";
+const PROFILE_KEY = "galaxyCoreProfileId";
+
+/* ============================================================
+   V3.3.1 PHONE ASSISTANT
+   The cloud backend returns a validated PHONE_ACTION intent.
+   The Android companion listens for the galaxycore:// URI.
+   ============================================================ */
+
+const PHONE_COMPANION_SCHEME = "galaxycore://open?app=";
+
+function launchPhoneAction(data) {
+    if (!data || data.intent !== "phone_action") return false;
+
+    const app = String(data.action?.app || "").toLowerCase();
+    const label = data.action?.label || app || "app";
+    const allowed = new Set(["youtube", "whatsapp", "chrome"]);
+
+    if (!allowed.has(app)) {
+        addPhoneStatus(`⚠️ Phone action blocked: ${label}`);
+        return true;
+    }
+
+    addPhoneStatus(`📱 Opening ${label}...`);
+
+    try {
+        window.location.href = PHONE_COMPANION_SCHEME + encodeURIComponent(app);
+    } catch (error) {
+        console.error("Phone companion launch:", error);
+        addPhoneStatus("⚠️ Could not start the Android companion.");
+    }
+    return true;
+}
+
+function addPhoneStatus(text) {
+    const status = document.getElementById("chatStatus");
+    if (status) status.textContent = text;
+}
+
+/* ============================================================
+   PROFILE
+   ============================================================ */
+
+function createProfileId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "gc-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+}
+
+let profileId = localStorage.getItem(PROFILE_KEY);
+if (!profileId) {
+    profileId = createProfileId();
+    localStorage.setItem(PROFILE_KEY, profileId);
+}
+document.getElementById("profileIdDisplay").textContent = profileId;
+
+/* ============================================================
+   CONVERSATIONS
+   IMPORTANT:
+   - Conversations persist in localStorage.
+   - The ACTIVE chat is intentionally NOT restored on refresh.
+   - On every page/app load we start with a clean New Chat.
+   ============================================================ */
+
+let conversations = loadConversations();
+let currentConversationId = null;
+let history = [];
+let selectedImages = [];
+let selectedDocument = null;
+let cloudMemory = [];
+let ttsEnabled = false;
+
+function loadConversations() {
+    try {
+        const value = JSON.parse(localStorage.getItem(CONVERSATIONS_KEY) || "[]");
+        if (!Array.isArray(value)) return [];
+        return value.filter(c =>
+            c &&
+            typeof c.id === "string" &&
+            Array.isArray(c.messages)
+        );
+    } catch {
+        return [];
+    }
+}
+
+function saveConversations() {
+    // Keep the browser database reasonably small.
+    conversations = conversations.slice(-100);
+    localStorage.setItem(CONVERSATIONS_KEY, JSON.stringify(conversations));
+}
+
+function makeConversationId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "conv-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+}
+
+function makeConversationTitle(message) {
+    const clean = String(message || "New Conversation").replace(/\s+/g, " ").trim();
+    if (!clean) return "New Conversation";
+    return clean.length > 45 ? clean.slice(0, 45) + "…" : clean;
+}
+
+function createConversation(firstMessage = "") {
+    const conversation = {
+        id: makeConversationId(),
+        title: makeConversationTitle(firstMessage),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        messages: []
+    };
+    conversations.push(conversation);
+    currentConversationId = conversation.id;
+    saveConversations();
+    renderConversationList();
+    updateCurrentTitle();
+    return conversation;
+}
+
+function getCurrentConversation() {
+    return conversations.find(c => c.id === currentConversationId) || null;
+}
+
+function persistCurrentConversation() {
+    const conversation = getCurrentConversation();
+    if (!conversation) return;
+
+    conversation.messages = history.slice(-100).map(item => ({
+        role: item.role,
+        content: item.content
+    }));
+
+    conversation.updatedAt = Date.now();
+    saveConversations();
+    renderConversationList();
+}
+
+function startNewChat() {
+    currentConversationId = null;
+    history = [];
+    renderMessages();
+    updateCurrentTitle();
+    renderConversationList();
+
+    const input = document.getElementById("messageInput");
+    if (input) {
+        input.value = "";
+        input.focus();
+    }
+}
+
+function openConversation(id) {
+    const conversation = conversations.find(c => c.id === id);
+    if (!conversation) return;
+
+    currentConversationId = id;
+    history = Array.isArray(conversation.messages)
+        ? conversation.messages.map(item => ({
+            role: item.role,
+            content: item.content
+        }))
+        : [];
+
+    renderMessages();
+    updateCurrentTitle();
+    renderConversationList();
+    showSection("chat");
+
+    document.getElementById("messageInput").focus();
+}
+
+function deleteConversation(id) {
+    const conversation = conversations.find(c => c.id === id);
+    if (!conversation) return;
+
+    if (!confirm(`Delete "${conversation.title}"?`)) return;
+
+    conversations = conversations.filter(c => c.id !== id);
+
+    if (currentConversationId === id) {
+        startNewChat();
+    } else {
+        saveConversations();
+        renderConversationList();
+    }
+}
+
+function renameCurrentConversation() {
+    const conversation = getCurrentConversation();
+    if (!conversation) {
+        alert("There is no saved conversation to rename yet.");
+        return;
+    }
+
+    const name = prompt("Enter a new conversation name:", conversation.title);
+    if (name === null) return;
+
+    const clean = name.trim();
+    if (!clean) return;
+
+    conversation.title = clean.slice(0, 80);
+    conversation.updatedAt = Date.now();
+    saveConversations();
+    renderConversationList();
+    updateCurrentTitle();
+}
+
+function renderConversationList() {
+    renderConversationListInto(document.getElementById("conversationList"));
+    renderConversationListInto(document.getElementById("mobileConversationList"));
+}
+
+function renderConversationListInto(list) {
+    if (!list) return;
+    list.innerHTML = "";
+
+    if (!conversations.length) {
+        list.innerHTML = '<div class="small">No saved conversations yet.</div>';
+        return;
+    }
+
+    const ordered = [...conversations].sort((a, b) => b.updatedAt - a.updatedAt);
+    ordered.forEach(conversation => {
+        const row = document.createElement("div");
+        row.className = "conversation-item";
+
+        const open = document.createElement("button");
+        open.className = "conversation-open" + (conversation.id === currentConversationId ? " active" : "");
+
+        const title = document.createElement("span");
+        title.className = "conversation-title";
+        title.textContent = conversation.title || "Untitled Conversation";
+
+        const date = document.createElement("span");
+        date.className = "conversation-date";
+        date.textContent = new Date(conversation.updatedAt).toLocaleString();
+
+        open.appendChild(title);
+        open.appendChild(date);
+        open.onclick = () => { openConversation(conversation.id); closeMobileConversations(); };
+
+        const del = document.createElement("button");
+        del.className = "conversation-delete";
+        del.textContent = "🗑️";
+        del.title = "Delete conversation";
+        del.onclick = () => { deleteConversation(conversation.id); closeMobileConversations(); };
+
+        row.appendChild(open);
+        row.appendChild(del);
+        list.appendChild(row);
+    });
+}
+
+function toggleMobileConversations() {
+    document.getElementById("mobileConversationMenu")?.classList.toggle("open");
+}
+
+function closeMobileConversations() {
+    document.getElementById("mobileConversationMenu")?.classList.remove("open");
+}
+
+document.addEventListener("click", (event) => {
+    const menu = document.getElementById("mobileConversationMenu");
+    const button = document.querySelector(".mobile-more");
+    if (!menu || !menu.classList.contains("open")) return;
+    if (!menu.contains(event.target) && !button?.contains(event.target)) closeMobileConversations();
+});
+
+function updateCurrentTitle() {
+    const element = document.getElementById("currentConversationTitle");
+    const conversation = getCurrentConversation();
+    element.textContent = conversation ? conversation.title : "New Chat";
+}
+
+/* ============================================================
+   CHAT RENDERING
+   ============================================================ */
+
+function renderMessages() {
+    const box = document.getElementById("messages");
+    if (!box) return;
+    box.innerHTML = "";
+
+    const p = getPersonalization();
+
+    if (!history.length) {
+        if (p.showGreeting === "true") {
+            const greeting = document.createElement("div");
+            greeting.className = "empty-chat gc-personalized-greeting";
+            greeting.innerHTML = `🌌 <strong>${escapeHtml(p.aiName)}</strong><br><span>${escapeHtml(p.greeting)}</span>`;
+            box.appendChild(greeting);
+        }
+        return;
+    }
+
+    history.forEach((item) => {
+        const wrapper = document.createElement("div");
+        const div = document.createElement("div");
+        div.className = "message " + (item.role === "user" ? "user-message" : "ai-message");
+        div.textContent = item.content || "";
+        wrapper.appendChild(div);
+
+        if (item.role === "model") {
+            const tools = document.createElement("div");
+            tools.className = "message-tools";
+            const speakButton = document.createElement("button");
+            speakButton.textContent = "🔊 Speak";
+            speakButton.onclick = () => speak(item.content || "");
+            const copyButton = document.createElement("button");
+            copyButton.textContent = "📋 Copy";
+            copyButton.onclick = async () => {
+                try {
+                    await navigator.clipboard.writeText(item.content || "");
+                    copyButton.textContent = "✓ Copied";
+                    setTimeout(() => copyButton.textContent = "📋 Copy", 1200);
+                } catch { alert("Copy is not available in this browser."); }
+            };
+            tools.appendChild(speakButton);
+            tools.appendChild(copyButton);
+            wrapper.appendChild(tools);
+        }
+        box.appendChild(wrapper);
+    });
+    box.scrollTop = box.scrollHeight;
+}
+
+function handleEnter(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+/* ============================================================
+   IMAGE UPLOAD
+   ============================================================ */
+
+function handleImages(event) {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    const combined = [...selectedImages, ...files];
+
+    if (combined.length > MAX_IMAGES) {
+        alert(`You can select up to ${MAX_IMAGES} images per request.`);
+        event.target.value = "";
+        return;
+    }
+
+    const oversized = files.find(file => file.size > MAX_IMAGE_SIZE);
+    if (oversized) {
+        alert("Each image can be up to 20 MB before browser optimization.");
+        event.target.value = "";
+        return;
+    }
+
+    const totalSize = combined.reduce((sum, file) => sum + file.size, 0);
+    if (totalSize > MAX_TOTAL_IMAGE_SIZE) {
+        alert("The selected images exceed the 100 MB browser selection limit.");
+        event.target.value = "";
+        return;
+    }
+
+    selectedImages = combined;
+    event.target.value = "";
+    renderImagePreviews();
+}
+
+function renderImagePreviews() {
+    const preview = document.getElementById("imagePreview");
+    const grid = document.getElementById("imageGrid");
+    const count = document.getElementById("imageCount");
+
+    grid.innerHTML = "";
+
+    if (!selectedImages.length) {
+        preview.style.display = "none";
+        count.textContent = "";
+        return;
+    }
+
+    preview.style.display = "block";
+    count.textContent =
+        `${selectedImages.length} image${selectedImages.length === 1 ? "" : "s"} selected.`;
+
+    selectedImages.forEach((file, index) => {
+        const card = document.createElement("div");
+        card.className = "image-card";
+
+        const img = document.createElement("img");
+        img.alt = file.name || `Image ${index + 1}`;
+
+        const reader = new FileReader();
+        reader.onload = e => img.src = e.target.result;
+        reader.readAsDataURL(file);
+
+        const button = document.createElement("button");
+        button.textContent = "Remove";
+        button.onclick = () => {
+            selectedImages.splice(index, 1);
+            renderImagePreviews();
+        };
+
+        card.appendChild(img);
+        card.appendChild(button);
+        grid.appendChild(card);
+    });
+
+    document.getElementById("fileInfo").textContent =
+        `${selectedImages.length} image${selectedImages.length === 1 ? "" : "s"} ready for analysis.`;
+}
+
+function removeAllImages() {
+    selectedImages = [];
+    document.getElementById("imageInput").value = "";
+    renderImagePreviews();
+
+    if (!selectedDocument) {
+        document.getElementById("fileInfo").textContent = "";
+    }
+}
+
+async function prepareImage(file) {
+    if (file.size <= 5 * 1024 * 1024) {
+        return {
+            base64: await fileToDataURL(file),
+            mimeType: file.type || "image/jpeg",
+            name: file.name
+        };
+    }
+
+    try {
+        const bitmap = await createImageBitmap(file);
+        const maxDimension = 4096;
+        const scale = Math.min(
+            1,
+            maxDimension / Math.max(bitmap.width, bitmap.height)
+        );
+
+        const width = Math.max(1, Math.round(bitmap.width * scale));
+        const height = Math.max(1, Math.round(bitmap.height * scale));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Could not prepare image.");
+
+        ctx.drawImage(bitmap, 0, 0, width, height);
+        bitmap.close();
+
+        return {
+            base64: canvas.toDataURL("image/jpeg", 0.88),
+            mimeType: "image/jpeg",
+            name: file.name.replace(/\.[^.]+$/, "") + ".jpg"
+        };
+    } catch {
+        return {
+            base64: await fileToDataURL(file),
+            mimeType: file.type || "image/jpeg",
+            name: file.name
+        };
+    }
+}
+
+/* ============================================================
+   DOCUMENT
+   ============================================================ */
+
+function handleDocument(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+        alert("Document must be 20 MB or smaller.");
+        event.target.value = "";
+        return;
+    }
+
+    selectedDocument = file;
+    document.getElementById("fileInfo").textContent = "Document: " + file.name;
+}
+
+function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Could not read file."));
+        reader.readAsDataURL(file);
+    });
+}
+
+/* ============================================================
+   V3.3 CONTROL ENGINE UI
+   ============================================================ */
+
+function renderControlDevice(device) {
+    if (!device) return;
+    const name = document.getElementById("gcCarName");
+    const direction = document.getElementById("gcCarDirection");
+    const speed = document.getElementById("gcCarSpeed");
+    const position = document.getElementById("gcCarPosition");
+    const status = document.getElementById("gcDeviceStatus");
+
+    if (name) name.textContent = device.name || "Galaxy Virtual Car";
+    if (direction) direction.textContent = String(device.direction || "north").replace(/^./, c => c.toUpperCase());
+    if (speed) speed.textContent = `${device.speed ?? 0}%`;
+    if (position) position.textContent = `${Number(device.x || 0).toFixed(2)}, ${Number(device.y || 0).toFixed(2)}`;
+    if (status) {
+        const action = device.last_action || "idle";
+        status.textContent = device.moving
+            ? `🟢 Virtual device active — ${action} at ${device.speed}% speed.`
+            : `🟢 Virtual device online — last action: ${action}.`;
+    }
+}
+
+function sendControlCommand(command) {
+    const input = document.getElementById("messageInput");
+    if (!input) return;
+    showSection("chat");
+    input.value = command;
+    sendMessage();
+}
+
+function resetVirtualCarUI() {
+    renderControlDevice({
+        name: "Galaxy Virtual Car",
+        direction: "north",
+        speed: 0,
+        x: 0,
+        y: 0,
+        moving: false,
+        last_action: "reset (local preview)"
+    });
+    const input = document.getElementById("messageInput");
+    if (input) {
+        input.value = "stop the car";
+        sendMessage();
+    }
+}
+
+/* ============================================================
+   CHAT REQUEST
+   ============================================================ */
+
+async function sendMessage() {
+    const input = document.getElementById("messageInput");
+    const status = document.getElementById("chatStatus");
+
+    const message = input.value.trim();
+
+    if (!message && !selectedImages.length && !selectedDocument) return;
+
+    try {
+        status.textContent = "Galaxy Core is preparing your request...";
+
+        let imagePayload = [];
+        let documentData = null;
+        let documentType = null;
+
+        if (selectedImages.length) {
+            for (let i = 0; i < selectedImages.length; i++) {
+                status.textContent =
+                    `Preparing image ${i + 1}/${selectedImages.length}...`;
+
+                const prepared = await prepareImage(selectedImages[i]);
+
+                imagePayload.push({
+                    base64: prepared.base64.split(",")[1] || prepared.base64,
+                    mime_type: prepared.mimeType,
+                    name: prepared.name
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        }
+
+        if (selectedDocument) {
+            const dataURL = await fileToDataURL(selectedDocument);
+            documentData = dataURL.split(",")[1] || dataURL;
+            documentType = selectedDocument.type || "application/octet-stream";
+        }
+
+        const userText =
+            message ||
+            (selectedImages.length
+                ? `Please analyze these ${selectedImages.length} images together.`
+                : "Please analyze this document.");
+
+        // IMPORTANT:
+        // Send previous messages to the backend, not the new user message.
+        // The backend receives the current message separately.
+        const previousHistory = history.slice(-MAX_HISTORY);
+
+        // Create the saved conversation only when the user actually sends something.
+        if (!currentConversationId) {
+            createConversation(userText);
+        }
+
+        history.push({
+            role: "user",
+            content: userText
+        });
+
+        renderMessages();
+        input.value = "";
+
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                user_id: profileId,
+                message: userText,
+                history: previousHistory,
+                images: imagePayload,
+                document_base64: documentData,
+                document_mime_type: documentType
+            })
+        });
+
+        const data = await safeJson(response);
+
+        if (!response.ok) {
+            throw new Error(data.detail || `Backend request failed (${response.status}).`);
+        }
+
+        const answer = data.answer || "No answer returned.";
+
+        if (data.intent === "action" && data.device) {
+            renderControlDevice(data.device);
+        }
+
+        if (data.intent === "phone_action") {
+            launchPhoneAction(data);
+        }
+
+        history.push({
+            role: "model",
+            content: answer
+        });
+
+        persistCurrentConversation();
+        renderMessages();
+
+        if (ttsEnabled) speak(answer);
+
+        // Cloud memory is refreshed after a successful response.
+        refreshCloudMemory(false);
+
+    } catch (error) {
+        console.error("Galaxy Core chat error:", error);
+
+        const errorMessage =
+            "⚠️ " + (error.message || "Something went wrong.");
+
+        // Keep the user's actual conversation intact; show an error separately.
+        history.push({
+            role: "model",
+            content: errorMessage
+        });
+
+        persistCurrentConversation();
+        renderMessages();
+
+    } finally {
+        status.textContent = "";
+        removeAllImages();
+
+        selectedDocument = null;
+        document.getElementById("documentInput").value = "";
+        document.getElementById("fileInfo").textContent = "";
+    }
+}
+
+async function safeJson(response) {
+    const text = await response.text();
+
+    try {
+        return text ? JSON.parse(text) : {};
+    } catch {
+        return {
+            detail: text || `Server returned HTTP ${response.status}.`
+        };
+    }
+}
+
+/* ============================================================
+   VOICE
+   ============================================================ */
+
+function startVoice() {
+    const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        alert("Speech recognition is not supported by this browser.");
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+        document.getElementById("chatStatus").textContent = "🎤 Listening...";
+    };
+
+    recognition.onresult = event => {
+        document.getElementById("messageInput").value =
+            event.results[0][0].transcript;
+        sendMessage();
+    };
+
+    recognition.onerror = event => {
+        document.getElementById("chatStatus").textContent =
+            "Voice error: " + event.error;
+    };
+
+    recognition.onend = () => {
+        setTimeout(() => {
+            document.getElementById("chatStatus").textContent = "";
+        }, 1000);
+    };
+
+    recognition.start();
+}
+
+/* ============================================================
+   TTS
+   ============================================================ */
+
+function toggleTTS() {
+    ttsEnabled = !ttsEnabled;
+
+    const button = document.getElementById("ttsButton");
+
+    if (ttsEnabled) {
+        button.textContent = "🔊 TTS ON";
+    } else {
+        button.textContent = "🔇 TTS OFF";
+        if ("speechSynthesis" in window) speechSynthesis.cancel();
+    }
+}
+
+function speak(text) {
+    if (!("speechSynthesis" in window)) return;
+
+    speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-IN";
+    speechSynthesis.speak(utterance);
+}
+
+/* ============================================================
+   CLEAR CURRENT CHAT
+   ============================================================ */
+
+function clearCurrentChat() {
+    if (!history.length) return;
+
+    if (!confirm("Clear the messages in this conversation? The saved conversation will also be deleted.")) {
+        return;
+    }
+
+    if (currentConversationId) {
+        conversations = conversations.filter(c => c.id !== currentConversationId);
+    }
+
+    startNewChat();
+    saveConversations();
+    renderConversationList();
+}
+
+/* ============================================================
+   CLOUD MEMORY
+   ============================================================ */
+
+async function syncMemory() {
+    const status = document.getElementById("memoryStatus");
+
+    if (!history.length) {
+        status.textContent = "There is no current conversation to sync.";
+        return;
+    }
+
+    status.textContent = "Syncing current conversation memory...";
+
+    try {
+        // Memory API accepts one role/content item at a time.
+        for (const item of history.slice(-100)) {
+            const response = await fetch(MEMORY_URL, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    user_id: profileId,
+                    role: item.role,
+                    content: item.content
+                })
+            });
+
+            const data = await safeJson(response);
+
+            if (!response.ok) {
+                throw new Error(data.detail || "Memory sync failed.");
+            }
+        }
+
+        await refreshCloudMemory(false);
+        status.textContent = "☁️ Current conversation synchronized.";
+    } catch (error) {
+        status.textContent = "Memory sync error: " + error.message;
+    }
+}
+
+async function refreshCloudMemory(showStatus = true) {
+    const status = document.getElementById("memoryStatus");
+
+    if (showStatus) status.textContent = "Loading cloud memory...";
+
+    try {
+        const response = await fetch(
+            MEMORY_URL + "?user_id=" + encodeURIComponent(profileId)
+        );
+
+        const data = await safeJson(response);
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Could not load memory.");
+        }
+
+        cloudMemory = Array.isArray(data.memory) ? data.memory : [];
+        renderMemory();
+
+        if (showStatus) status.textContent = "☁️ Cloud memory loaded.";
+    } catch (error) {
+        if (showStatus) status.textContent = "Memory error: " + error.message;
+    }
+}
+
+async function clearCloudMemory() {
+    if (!confirm("Delete your cloud memory?")) return;
+
+    try {
+        const response = await fetch(
+            MEMORY_URL + "?user_id=" + encodeURIComponent(profileId),
+            {method: "DELETE"}
+        );
+
+        const data = await safeJson(response);
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Could not delete memory.");
+        }
+
+        cloudMemory = [];
+        renderMemory();
+        document.getElementById("memoryStatus").textContent =
+            "Cloud memory cleared.";
+    } catch (error) {
+        document.getElementById("memoryStatus").textContent = error.message;
+    }
+}
+
+function renderMemory() {
+    const box = document.getElementById("memoryList");
+
+    if (!cloudMemory.length) {
+        box.textContent = "No cloud memory available.";
+        return;
+    }
+
+    box.innerHTML = "";
+
+    cloudMemory.slice(-100).forEach(item => {
+        const div = document.createElement("div");
+        div.className = "memory-item";
+
+        const role = item.role === "user" ? "You" : "Galaxy Core";
+
+        const strong = document.createElement("strong");
+        strong.textContent = role;
+
+        const content = document.createElement("div");
+        content.textContent = item.content || "";
+
+        div.appendChild(strong);
+        div.appendChild(document.createElement("br"));
+        div.appendChild(content);
+        box.appendChild(div);
+    });
+}
+
+/* ============================================================
+   STUDY
+   ============================================================ */
+
+async function studyRequest(prompt) {
+    const result = document.getElementById("studyResult");
+    result.textContent = "Galaxy Core is preparing your study material...";
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                user_id: profileId,
+                message: prompt,
+                history: []
+            })
+        });
+
+        const data = await safeJson(response);
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Study request failed.");
+        }
+
+        result.textContent = data.answer || "No result.";
+    } catch (error) {
+        result.textContent = "Error: " + error.message;
+    }
+}
+
+function generateExplanation() {
+    const topic = document.getElementById("studyTopic").value.trim();
+    const studentClass = document.getElementById("studyClass").value.trim();
+
+    if (!topic) return alert("Enter a topic.");
+
+    studyRequest(
+        `Explain the topic '${topic}' for a student of class ${studentClass || "general level"}. Use simple language, headings and examples.`
+    );
+}
+
+function generateQuiz() {
+    const topic = document.getElementById("studyTopic").value.trim();
+    const studentClass = document.getElementById("studyClass").value.trim();
+    const questions = document.getElementById("studyQuestions").value;
+
+    if (!topic) return alert("Enter a topic.");
+
+    studyRequest(
+        `Create a ${questions}-question quiz on '${topic}' for class ${studentClass || "general level"}. Include four options and provide an answer key at the end.`
+    );
+}
+
+function generateQuestionPaper() {
+    const topic = document.getElementById("studyTopic").value.trim();
+    const studentClass = document.getElementById("studyClass").value.trim();
+
+    if (!topic) return alert("Enter a topic.");
+
+    studyRequest(
+        `Create a school question paper on '${topic}' for Class ${studentClass || "VI"}. Include clear sections, marks and a balanced mixture of question types.`
+    );
+}
+
+/* ============================================================
+   AI TOOLS
+   ============================================================ */
+
+async function runTool(tool) {
+    const input = document.getElementById("toolInput").value.trim();
+    const result = document.getElementById("toolResult");
+
+    if (!input) return alert("Enter some text first.");
+
+    const prompts = {
+        summarize: "Summarize the following text clearly and concisely:\n\n" + input,
+        rewrite: "Rewrite the following text professionally while preserving its meaning:\n\n" + input,
+        simplify: "Simplify the following text so that it is easy to understand:\n\n" + input,
+        translate: "Translate the following text. If the target language is not specified, ask what language the user wants:\n\n" + input,
+        ideas: "Generate useful creative ideas based on this request:\n\n" + input,
+        email: "Write a professional email based on the following information:\n\n" + input,
+        code: "Explain the following code clearly, including what it does and any important issues:\n\n" + input,
+        math: "Solve the following mathematical problem step by step and give the final answer clearly:\n\n" + input
+    };
+
+    result.textContent = "Galaxy Core is working...";
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                user_id: profileId,
+                message: prompts[tool],
+                history: []
+            })
+        });
+
+        const data = await safeJson(response);
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Tool request failed.");
+        }
+
+        result.textContent = data.answer || "No result.";
+    } catch (error) {
+        result.textContent = "Error: " + error.message;
+    }
+}
+
+/* ============================================================
+   NAVIGATION / MODALS
+   ============================================================ */
+
+function showSection(id) {
+    document.querySelectorAll("main > section, main > div[id]").forEach(section => {
+        section.classList.add("hidden");
+    });
+
+    const target = document.getElementById(id);
+    if (target) target.classList.remove("hidden");
+
+    if (id === "chat") {
+        renderConversationList();
+        updateCurrentTitle();
+    }
+
+    window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function openModal(id) {
+    document.getElementById(id).style.display = "flex";
+}
+
+function closeModal(id) {
+    document.getElementById(id).style.display = "none";
+}
+
+/* ============================================================
+   V3.2 PERSONALIZATION
+   ============================================================ */
+const GC_PERSONALIZATION_KEY = "galaxyCorePersonalizationV32";
+const GC_DEFAULT_PERSONALIZATION = {
+    theme: "dark",
+    accent: "#7c3aed",
+    fontSize: "1",
+    aiName: "Galaxy Core",
+    greeting: "Hello! How can I help you?",
+    showGreeting: "true",
+    responseStyle: "balanced",
+    voiceEnabled: "manual",
+    background: "#050816"
+};
+
+function getPersonalization() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(GC_PERSONALIZATION_KEY) || "{}");
+        return {...GC_DEFAULT_PERSONALIZATION, ...saved};
+    } catch (_) {
+        return {...GC_DEFAULT_PERSONALIZATION};
+    }
+}
+
+function applyPersonalization(p = getPersonalization()) {
+    document.documentElement.style.setProperty("--gc-accent", p.accent);
+    document.documentElement.style.setProperty("--gc-accent-soft", hexToRgba(p.accent, 0.18));
+    document.documentElement.style.setProperty("--gc-font-scale", p.fontSize);
+    document.documentElement.style.setProperty("--gc-bg", p.background || "#050816");
+    document.body.dataset.gcTheme = p.theme;
+    const bg = document.getElementById("gcBackground");
+    if (bg) bg.value = p.background || "#050816";
+    const bgPreview = document.getElementById("gcBackgroundPreview");
+    if (bgPreview) bgPreview.style.background = p.background || "#050816";
+
+    updateIdentityUI(p);
+    renderMessages();
+}
+
+function hexToRgba(hex, alpha) {
+    const clean = String(hex || "#7c3aed").replace("#", "");
+    const value = clean.length === 3 ? clean.split("").map(x => x + x).join("") : clean;
+    const r = parseInt(value.slice(0,2),16) || 124;
+    const g = parseInt(value.slice(2,4),16) || 58;
+    const b = parseInt(value.slice(4,6),16) || 237;
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function updateIdentityUI(p = getPersonalization()) {
+    document.querySelectorAll(".logo").forEach(el => {
+        el.innerHTML = `🌌 <span>${escapeHtml(p.aiName)}</span>`;
+    });
+
+    const title = document.getElementById("currentConversationTitle");
+    const conversation = getCurrentConversation();
+    if (title && !conversation) title.textContent = p.aiName;
+
+    const pageTitle = document.querySelector("#chat h2");
+    if (pageTitle) pageTitle.textContent = `🤖 ${p.aiName} AI Chat`;
+}
+
+function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value || "";
+    return div.innerHTML;
+}
+
+function loadPersonalizationUI() {
+    const p = getPersonalization();
+    const values = {
+        gcTheme:p.theme,
+        gcAccent:p.accent,
+        gcFontSize:p.fontSize,
+        gcAiName:p.aiName,
+        gcGreeting:p.greeting,
+        gcShowGreeting:p.showGreeting,
+        gcResponseStyle:p.responseStyle,
+        gcVoiceEnabled:p.voiceEnabled,
+        gcBackground:p.background
+    };
+    Object.entries(values).forEach(([id,value]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+    });
+}
+
+function savePersonalization() {
+    const p = {
+        theme: document.getElementById("gcTheme")?.value || "dark",
+        accent: document.getElementById("gcAccent")?.value || "#7c3aed",
+        fontSize: document.getElementById("gcFontSize")?.value || "1",
+        aiName: document.getElementById("gcAiName")?.value.trim() || "Galaxy Core",
+        greeting: document.getElementById("gcGreeting")?.value.trim() || "Hello! How can I help you?",
+        showGreeting: document.getElementById("gcShowGreeting")?.value || "true",
+        responseStyle: document.getElementById("gcResponseStyle")?.value || "balanced",
+        voiceEnabled: document.getElementById("gcVoiceEnabled")?.value || "manual",
+        background: document.getElementById("gcBackground")?.value || "#050816"
+    };
+
+    localStorage.setItem(GC_PERSONALIZATION_KEY, JSON.stringify(p));
+    applyPersonalization(p);
+
+    const status = document.getElementById("gcPersonalizationStatus");
+    if (status) {
+        status.textContent = "✓ Saved successfully";
+        setTimeout(() => { status.textContent = ""; }, 1800);
+    }
+}
+
+function resetPersonalization() {
+    localStorage.removeItem(GC_PERSONALIZATION_KEY);
+    loadPersonalizationUI();
+    applyPersonalization(GC_DEFAULT_PERSONALIZATION);
+    const status = document.getElementById("gcPersonalizationStatus");
+    if (status) {
+        status.textContent = "↩️ Reset to defaults";
+        setTimeout(() => { status.textContent = ""; }, 1800);
+    }
+}
+
+const gcBackgroundInput = document.getElementById("gcBackground");
+if (gcBackgroundInput) {
+    gcBackgroundInput.addEventListener("input", function() {
+        document.documentElement.style.setProperty("--gc-bg", this.value);
+        const preview = document.getElementById("gcBackgroundPreview");
+        if (preview) preview.style.background = this.value;
+    });
+}
+
+/* ============================================================
+   STARTUP
+   ============================================================ */
+
+loadPersonalizationUI();
+applyPersonalization();
+
+// Deliberately do NOT restore the previous active conversation here.
+// Refresh/reopen = clean New Chat.
+// Saved conversations remain in the conversation list.
+startNewChat();
+renderConversationList();
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker
+            .register("service-worker.js?v=7")
+            .catch(error => console.error("Service worker:", error));
+    });
+}
+</script>
+</body>
+</html>
