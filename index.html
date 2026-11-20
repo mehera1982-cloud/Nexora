@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101020">
+<title>NEXORA 4.0</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080815;color:white;font-family:Arial,sans-serif}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+header{height:65px;background:#14142a;display:flex;align-items:center;justify-content:space-between;padding:15px;border-bottom:1px solid #303050}
+.logo{font-size:23px;font-weight:bold;color:#a56cff}
+.icon{background:#292944;color:white;border:0;border-radius:12px;padding:10px;margin-left:6px}
+.screen{display:none;padding:16px;padding-bottom:90px}
+.screen.active{display:block}
+.card{background:#17172d;padding:15px;border-radius:15px;margin:10px 0;cursor:pointer}
+.card:hover{background:#252544}
+input,textarea{width:100%;padding:13px;margin:8px 0;border:1px solid #444466;border-radius:10px;background:#18182d;color:white}
+.primary{background:linear-gradient(90deg,#794cff,#00c9ff);border:0;border-radius:10px;color:white;padding:12px 18px;font-weight:bold}
+nav{position:fixed;bottom:0;left:0;right:0;background:#14142a;display:flex;justify-content:space-around;padding:12px;border-top:1px solid #333}
+nav button{background:none;border:0;color:#bbb;font-size:15px}
+.message{padding:12px;margin:9px 0;border-radius:13px;max-width:80%;overflow-wrap:anywhere}
+.mine{background:#5536a8;margin-left:auto}
+.theirs{background:#252540;margin-right:auto}
+#messages,#aiMessages{height:55vh;overflow:auto;padding:8px}
+.row{display:flex;gap:8px}
+.row input{flex:1}
+#auth{max-width:400px;margin:55px auto;padding:20px}
+.small{font-size:12px;color:#aaa}
+.error{color:#ff8585}
+</style>
+</head>
+
+<body>
+
+<div id="auth">
+<h1 class="logo">🌌 NEXORA</h1>
+<p>Connect beyond limits.</p>
+<input id="username" placeholder="Username" autocomplete="username">
+<input id="password" type="password" placeholder="Password (minimum 12 characters)">
+<div class="row">
+<button class="primary" onclick="authenticate('login')">Login</button>
+<button class="primary" onclick="authenticate('register')">Register</button>
+</div>
+<p id="authStatus" class="small"></p>
+</div>
+
+<div id="app" style="display:none">
+
+<header>
+<span class="logo" onclick="show('chats')">NEXORA</span>
+<div>
+<button class="icon" onclick="show('search')">➕</button>
+<button class="icon" onclick="show('ai')">🤖</button>
+</div>
+</header>
+
+<section id="chats" class="screen active">
+<h2>💬 Chats</h2>
+<div id="chatList"></div>
+<button class="primary" onclick="show('search')">+ New Chat</button>
+</section>
+
+<section id="search" class="screen">
+<h2>Find People</h2>
+<input id="searchInput" placeholder="Search username..." oninput="searchUsers()">
+<div id="searchResults"></div>
+</section>
+
+<section id="conversation" class="screen">
+<button class="icon" onclick="show('chats')">← Back</button>
+<h2 id="chatTitle"></h2>
+<div id="messages"></div>
+<div class="row">
+<input id="messageInput" placeholder="Type a message...">
+<button class="primary" onclick="sendMessage()">➤</button>
+</div>
+</section>
+
+<section id="ai" class="screen">
+<h2>🤖 Galaxy AI</h2>
+<div id="aiMessages"></div>
+<div class="row">
+<input id="aiInput" placeholder="Ask Galaxy AI...">
+<button class="primary" onclick="sendAI()">➤</button>
+</div>
+</section>
+
+<section id="videos" class="screen">
+<h2>🎥 Videos</h2>
+<p>Share YouTube videos with your friends.</p>
+<input id="videoURL" placeholder="Paste YouTube URL">
+<button class="primary" onclick="addVideo()">Add Video</button>
+<div id="videoList"></div>
+</section>
+
+<section id="profile" class="screen">
+<h2>👤 Profile</h2>
+<p id="profileName"></p>
+<button class="primary" onclick="logout()">Logout</button>
+</section>
+
+<nav>
+<button onclick="show('chats')">💬 Chats</button>
+<button onclick="show('videos')">🎥 Videos</button>
+<button onclick="show('profile')">👤 Profile</button>
+</nav>
+
+</div>
+
+<script>
+const API="https://nexoragc.mehera1982.workers.dev";
+const AI="https://galaxycoreai.mehera1982.workers.dev/";
+
+let token=sessionStorage.getItem("nexora_token");
+let me=sessionStorage.getItem("nexora_user");
+let currentChat=null;
+let inbox=[];
+let aiHistory=[];
+
+const $=id=>document.getElementById(id);
+
+function status(message){
+ $("authStatus").textContent=message;
+}
+
+async function request(path,options={}){
+ const headers={
+  "Content-Type":"application/json",
+  ...(token?{"Authorization":"Bearer "+token}:{}),
+  ...(options.headers||{})
+ };
+ const response=await fetch(API+path,{...options,headers});
+ const data=await response.json();
+ if(!response.ok)throw new Error(data.error||data.message||"Request failed");
+ return data;
+}
+
+async function authenticate(type){
+ const username=$("username").value.trim();
+ const password=$("password").value;
+ status("Please wait...");
+ try{
+  if(type==="register"){
+   await request("/register",{
+    method:"POST",
+    body:JSON.stringify({username,password})
+   });
+  }
+  const data=await request("/login",{
+   method:"POST",
+   body:JSON.stringify({username,password})
+  });
+  token=data.token;
+  me=data.user.username;
+  sessionStorage.setItem("nexora_token",token);
+  sessionStorage.setItem("nexora_user",me);
+  enterApp();
+ }catch(e){status(e.message)}
+}
+
+async function enterApp(){
+ $("auth").style.display="none";
+ $("app").style.display="block";
+ $("profileName").textContent="@"+me;
+ show("chats");
+ await loadInbox();
+}
+
+function show(id){
+ document.querySelectorAll(".screen").forEach(el=>el.classList.remove("active"));
+ $(id).classList.add("active");
+ if(id==="chats")loadInbox();
+ if(id==="conversation")renderMessages();
+}
+
+async function loadInbox(){
+ if(!token)return;
+ try{
+  const data=await request("/inbox");
+  inbox=data.messages||[];
+  const people=[...new Set(inbox.map(m=>m.sender===me?m.receiver:m.sender))];
+  $("chatList").innerHTML="";
+  if(!people.length)$("chatList").textContent="No conversations yet. Start a new chat!";
+  people.forEach(person=>{
+   const card=document.createElement("div");
+   card.className="card";
+   card.textContent="💬 "+person;
+   card.onclick=()=>openChat(person);
+   $("chatList").appendChild(card);
+  });
+  if(currentChat)renderMessages();
+ }catch(e){console.error(e)}
+}
+
+let searchTimer;
+function searchUsers(){
+ clearTimeout(searchTimer);
+ searchTimer=setTimeout(async()=>{
+  const q=$("searchInput").value.trim();
+  if(q.length<2){
+   $("searchResults").textContent="Enter at least 2 characters.";
+   return;
+  }
+  try{
+   const data=await request("/users?q="+encodeURIComponent(q));
+   $("searchResults").innerHTML="";
+   (data.users||[]).forEach(user=>{
+    const name=typeof user==="string"?user:user.username;
+    if(name===me)return;
+    const card=document.createElement("div");
+    card.className="card";
+    card.textContent="👤 "+name;
+    card.onclick=()=>openChat(name);
+    $("searchResults").appendChild(card);
+   });
+  }catch(e){$("searchResults").textContent=e.message}
+ },300);
+}
+
+function openChat(name){
+ currentChat=name;
+ $("chatTitle").textContent="💬 "+name;
+ show("conversation");
+}
+
+function renderMessages(){
+ if(!currentChat)return;
+ $("messages").innerHTML="";
+ inbox.filter(m=>
+  (m.sender===me&&m.receiver===currentChat)||
+  (m.receiver===me&&m.sender===currentChat)
+ ).reverse().forEach(m=>{
+  const div=document.createElement("div");
+  div.className="message "+(m.sender===me?"mine":"theirs");
+  div.textContent=m.content;
+  $("messages").appendChild(div);
+ });
+ $("messages").scrollTop=$("messages").scrollHeight;
+}
+
+async function sendMessage(){
+ const content=$("messageInput").value.trim();
+ if(!content||!currentChat)return;
+ try{
+  await request("/send",{
+   method:"POST",
+   body:JSON.stringify({receiver:currentChat,content})
+  });
+  $("messageInput").value="";
+  await loadInbox();
+ }catch(e){alert(e.message)}
+}
+
+async function sendAI(){
+ const content=$("aiInput").value.trim();
+ if(!content)return;
+ $("aiInput").value="";
+ appendAI("You",content);
+ aiHistory.push({role:"user",content});
+ try{
+  const response=await fetch(AI,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({messages:aiHistory})
+  });
+  if(!response.ok)throw new Error("AI service returned "+response.status);
+  const data=await response.json();
+  const reply=data.reply||data.response||data.answer||"No AI response received.";
+  appendAI("Galaxy AI",reply);
+  aiHistory.push({role:"assistant",content:reply});
+ }catch(e){
+  appendAI("System","Galaxy AI connection failed: "+e.message);
+ }
+}
+
+function appendAI(who,message){
+ const div=document.createElement("div");
+ div.className="card";
+ div.textContent=who+": "+message;
+ $("aiMessages").appendChild(div);
+ $("aiMessages").scrollTop=$("aiMessages").scrollHeight;
+}
+
+function addVideo(){
+ const url=$("videoURL").value.trim();
+ let id;
+ try{
+  const u=new URL(url);
+  if(u.hostname==="youtu.be")id=u.pathname.slice(1);
+  else if(["youtube.com","www.youtube.com","m.youtube.com"].includes(u.hostname)){
+   id=u.searchParams.get("v");
+   if(!id&&u.pathname.startsWith("/shorts/"))id=u.pathname.split("/")[2];
+  }
+ }catch{}
+ if(!id||!/^[\w-]{11}$/.test(id)){
+  alert("Enter a valid YouTube URL");
+  return;
+ }
+ const iframe=document.createElement("iframe");
+ iframe.src="https://www.youtube-nocookie.com/embed/"+id;
+ iframe.width="100%";
+ iframe.height="220";
+ iframe.title="YouTube video";
+ iframe.allowFullscreen=true;
+ iframe.style.border="0";
+ $("videoList").prepend(iframe);
+ $("videoURL").value="";
+}
+
+async function logout(){
+ try{await request("/logout",{method:"POST"})}catch{}
+ token=null;
+ me=null;
+ sessionStorage.removeItem("nexora_token");
+ sessionStorage.removeItem("nexora_user");
+ $("app").style.display="none";
+ $("auth").style.display="block";
+}
+
+if(token&&me){
+ request("/me").then(()=>enterApp()).catch(()=>{
+  sessionStorage.clear();
+  token=null;
+  me=null;
+ });
+}
+
+setInterval(()=>{
+ if(token&&$("chats").classList.contains("active"))loadInbox();
+ if(token&&$("conversation").classList.contains("active"))loadInbox();
+},5000);
+</script>
+</body>
+</html>
