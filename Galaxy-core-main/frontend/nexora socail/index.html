@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#0b1020">
+
+  <meta
+    name="description"
+    content="NEXORA — Messaging, Galaxy AI and Videos"
+  >
+
+  <title>NEXORA 4.0</title>
+
+  <link rel="manifest" href="./manifest.json">
+
+  <link rel="icon" href="./icon-192.png">
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+  <!-- ========================================
+       AUTHENTICATION SCREEN
+  ========================================= -->
+
+  <section id="auth-screen" class="auth-screen">
+
+    <div class="auth-card">
+
+      <div class="auth-logo">
+        <span class="logo-symbol">✦</span>
+        NEX<span>ORA</span>
+      </div>
+
+      <h2>Welcome to NEXORA</h2>
+
+      <p class="muted">
+        Connect beyond limits.
+      </p>
+
+      <label for="auth-username">
+        Username
+      </label>
+
+      <input
+        id="auth-username"
+        class="input"
+        type="text"
+        placeholder="Enter your username"
+        autocomplete="username"
+        maxlength="24"
+      >
+
+      <label for="auth-password">
+        Password
+      </label>
+
+      <input
+        id="auth-password"
+        class="input"
+        type="password"
+        placeholder="Minimum 12 characters"
+        autocomplete="current-password"
+      >
+
+      <div class="auth-buttons">
+
+        <button id="login-btn" class="btn primary">
+          Log in
+        </button>
+
+        <button id="register-btn" class="btn secondary">
+          Register
+        </button>
+
+      </div>
+
+      <p id="auth-status" class="status" role="status"></p>
+
+      <p class="small muted">
+        NEXORA is an early prototype. Messages are not
+        end-to-end encrypted.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- ========================================
+       MAIN APPLICATION
+  ========================================= -->
+
+  <div id="app" class="app" hidden>
+
+    <header class="topbar">
+
+      <button id="home-btn" class="brand">
+        ✦ NEX<span>ORA</span>
+      </button>
+
+      <div class="top-actions">
+
+        <button
+          id="refresh-btn"
+          class="icon-btn"
+          title="Refresh messages"
+          aria-label="Refresh messages"
+        >
+          ↻
+        </button>
+
+        <button
+          id="new-chat-btn"
+          class="icon-btn"
+          title="New chat"
+          aria-label="New chat"
+        >
+          ＋
+        </button>
+
+        <button
+          id="open-ai-btn"
+          class="icon-btn ai-trigger"
+          title="Galaxy AI"
+          aria-label="Open Galaxy AI"
+        >
+          🤖
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <main class="main">
+
+      <!-- CHATS -->
+
+      <section id="chats-page" class="page active">
+
+        <div class="page-heading">
+
+          <div>
+            <h1>Messages 💬</h1>
+
+            <p class="muted">
+              Your conversations
+            </p>
+          </div>
+
+          <span id="connection-status" class="connection">
+            ● Connecting
+          </span>
+
+        </div>
+
+        <input
+          id="chat-filter"
+          class="input"
+          placeholder="Search conversations..."
+        >
+
+        <div id="chat-list" class="chat-list"></div>
+
+        <button id="start-chat-btn" class="btn primary">
+          ＋ Start a conversation
+        </button>
+
+      </section>
+
+
+      <!-- DISCOVER -->
+
+      <section id="discover-page" class="page">
+
+        <h1>Find People 🔎</h1>
+
+        <p class="muted">
+          Search registered NEXORA accounts.
+        </p>
+
+        <input
+          id="user-search"
+          class="input"
+          placeholder="Enter at least two characters..."
+          autocomplete="off"
+        >
+
+        <div id="search-results" class="chat-list"></div>
+
+      </section>
+
+
+      <!-- CONVERSATION -->
+
+      <section id="conversation-page" class="page">
+
+        <div class="conversation-header">
+
+          <button id="back-btn" class="icon-btn">
+            ←
+          </button>
+
+          <div id="peer-avatar" class="avatar">
+            ?
+          </div>
+
+          <div class="conversation-info">
+
+            <h3 id="peer-name">
+              Conversation
+            </h3>
+
+            <small class="muted">
+              NEXORA Messaging
+            </small>
+
+          </div>
+
+          <button id="chat-refresh-btn" class="icon-btn">
+            ↻
+          </button>
+
+        </div>
+
+        <div
+          id="messages"
+          class="messages"
+          role="log"
+          aria-live="polite"
+        ></div>
+
+        <!-- NEXORA MESSAGE COMPOSER -->
+
+        <form id="message-form" class="composer">
+
+          <!-- ATTACHMENT BUTTON -->
+
+          <button
+            id="attach-btn"
+            class="icon-btn"
+            type="button"
+            title="Share a file"
+            aria-label="Attach a file"
+          >
+            📎
+          </button>
+
+          <!-- HIDDEN FILE PICKER -->
+
+          <input
+            id="attachment-input"
+            type="file"
+            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+            hidden
+          >
+
+          <!-- TEXT MESSAGE -->
+
+          <input
+            id="message-input"
+            class="input"
+            type="text"
+            placeholder="Type a message..."
+            maxlength="4000"
+            autocomplete="off"
+          >
+
+          <!-- VOICE RECORDING BUTTON -->
+
+          <button
+            id="voice-btn"
+            class="icon-btn"
+            type="button"
+            title="Record voice message"
+            aria-label="Record voice message"
+          >
+            🎤
+          </button>
+
+          <!-- SEND BUTTON -->
+
+          <button
+            id="send-btn"
+            class="btn primary"
+            type="submit"
+            aria-label="Send message"
+          >
+            ➤
+          </button>
+
+        </form>
+
+        <!-- ATTACHMENT PREVIEW -->
+
+        <div
+          id="attachment-preview"
+          class="attachment-preview"
+          hidden
+        >
+
+          <span id="attachment-name"></span>
+
+          <button
+            id="remove-attachment-btn"
+            class="icon-btn"
+            type="button"
+            aria-label="Remove attachment"
+          >
+            ✕
+          </button>
+
+        </div>
+
+        <!-- VOICE RECORDING PANEL -->
+
+        <div
+          id="voice-panel"
+          class="voice-panel"
+          hidden
+        >
+
+          <span id="recording-status">
+            🎤 Ready to record
+          </span>
+
+          <span id="recording-timer">
+            00:00
+          </span>
+
+          <audio
+            id="voice-preview"
+            controls
+            hidden
+          ></audio>
+
+          <div class="voice-actions">
+
+            <button
+              id="stop-recording-btn"
+              class="btn secondary"
+              type="button"
+            >
+              ⏹ Stop
+            </button>
+
+            <button
+              id="cancel-recording-btn"
+              class="btn danger"
+              type="button"
+            >
+              ✕ Cancel
+            </button>
+
+            <button
+              id="send-voice-btn"
+              class="btn primary"
+              type="button"
+              disabled
+            >
+              ➤ Send Voice
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- VIDEOS -->
+
+      <section id="videos-page" class="page">
+
+        <h1>Videos 🎥</h1>
+
+        <p class="muted">
+          Save YouTube videos on your device.
+        </p>
+
+        <form id="video-form" class="video-form">
+
+          <input
+            id="video-url"
+            class="input"
+            type="url"
+            placeholder="Paste a YouTube URL"
+            required
+          >
+
+          <button class="btn primary" type="submit">
+            Add
+          </button>
+
+        </form>
+
+        <div id="video-list" class="video-grid"></div>
+
+      </section>
+
+
+      <!-- PROFILE -->
+
+      <section id="profile-page" class="page">
+
+        <h1>Your Profile 👤</h1>
+
+        <div class="profile-card">
+
+          <div id="profile-avatar" class="avatar large">
+            N
+          </div>
+
+          <h2 id="profile-username">
+            Username
+          </h2>
+
+          <p class="muted">
+            NEXORA Member
+          </p>
+
+          <label for="theme-select">
+            Appearance
+          </label>
+
+          <select id="theme-select" class="input">
+
+            <option value="purple">
+              Galaxy Purple
+            </option>
+
+            <option value="cyan">
+              Cyber Cyan
+            </option>
+
+            <option value="pink">
+              Nebula Pink
+            </option>
+
+          </select>
+
+          <button id="logout-btn" class="btn danger">
+            Log out
+          </button>
+
+        </div>
+
+      </section>
+
+    </main>
+
+
+    <!-- BOTTOM NAVIGATION -->
+
+    <nav class="bottom-nav">
+
+      <button data-page="chats" class="nav-btn selected">
+        💬
+        <span>Chats</span>
+      </button>
+
+      <button data-page="discover" class="nav-btn">
+        🔎
+        <span>People</span>
+      </button>
+
+      <button data-page="videos" class="nav-btn">
+        🎥
+        <span>Videos</span>
+      </button>
+
+      <button data-page="profile" class="nav-btn">
+        👤
+        <span>Profile</span>
+      </button>
+
+    </nav>
+
+  </div>
+
+
+  <!-- ========================================
+       GALAXY AI FULL SCREEN
+  ========================================= -->
+
+  <section id="ai-screen" class="ai-screen" hidden>
+
+    <header class="ai-header">
+
+      <div>
+
+        <h2>🤖 Galaxy AI</h2>
+
+        <small>
+          Powered by Galaxy Core
+        </small>
+
+      </div>
+
+      <div class="ai-actions">
+
+        <button id="clear-ai-btn" class="icon-btn">
+          🗑
+        </button>
+
+        <button id="close-ai-btn" class="icon-btn">
+          ✕
+        </button>
+
+      </div>
+
+    </header>
+
+    <div
+      id="ai-messages"
+      class="ai-messages"
+      role="log"
+      aria-live="polite"
+    ></div>
+
+    <form id="ai-form" class="ai-composer">
+
+      <input
+        id="ai-input"
+        class="input"
+        placeholder="Ask Galaxy AI anything..."
+        maxlength="6000"
+      >
+
+      <button
+        id="ai-send-btn"
+        class="btn primary"
+        type="submit"
+      >
+        ➤
+      </button>
+
+    </form>
+
+  </section>
+
+
+  <!-- TOAST NOTIFICATIONS -->
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="./app.js" defer></script>
+
+</body>
+</html>

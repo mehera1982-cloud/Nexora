@@ -1,0 +1,26 @@
+{
+  "id": "./",
+  "name": "NEXORA — GC 4.0",
+  "short_name": "NEXORA",
+  "description": "NEXORA GC 4.0 — Connect, Create, Share. An AI-powered social network.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08051a",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "Nexora Neon Orbital Logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "Nexora Neon Orbital Logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
